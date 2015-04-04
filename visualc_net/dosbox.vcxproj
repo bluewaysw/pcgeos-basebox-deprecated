@@ -45,8 +45,8 @@
     <OutDir>.\Debug\</OutDir>
     <IntDir>.\Debug\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\workspace2\dosbox\SDL_net-1.2.8\include;C:\workspace2\dosbox\SDL-1.2.15\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\workspace2\dosbox\SDL_net-1.2.8\lib\x86;C:\workspace2\dosbox\SDL-1.2.15\lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\SDL_net-1.2.8\include;..\SDL-1.2.15\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\SDL_net-1.2.8\lib\x86;..\SDL-1.2.15\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>.\Release\</OutDir>
