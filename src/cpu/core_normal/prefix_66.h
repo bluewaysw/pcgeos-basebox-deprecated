@@ -163,7 +163,9 @@
 			bound_min=LoadMd(eaa);
 			bound_max=LoadMd(eaa+4);
 			if ( (((Bit32s)*rmrd) < bound_min) || (((Bit32s)*rmrd) > bound_max) ) {
-				EXCEPTION(5);
+				//EXCEPTION(5);
+				EXCEPTION(EXCEPTION_GP);
+
 			}
 		}
 		break;

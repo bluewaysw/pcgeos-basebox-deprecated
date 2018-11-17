@@ -165,6 +165,7 @@ Bitu CPU_Pop16(void);
 Bitu CPU_Pop32(void);
 void CPU_Push16(Bitu value);
 void CPU_Push32(Bitu value);
+PhysPt SelBase(Bitu sel);
 
 void CPU_SetFlags(Bitu word,Bitu mask);
 

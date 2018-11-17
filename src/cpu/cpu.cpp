@@ -30,6 +30,8 @@
 #include "paging.h"
 #include "lazyflags.h"
 #include "support.h"
+#include "pic.h"
+#include "timer.h"
 
 Bitu DEBUG_EnableDebugger(void);
 extern void GFX_SetTitle(Bit32s cycles ,Bits frameskip,bool paused);
@@ -538,12 +540,23 @@ doexception:
 
 void CPU_Exception(Bitu which,Bitu error ) {
 //	LOG_MSG("Exception %d error %x",which,error);
+	printf("Exception %d error %x %x %x\n", which, error, reg_eip, cs);
+	if ((which == 5) || (which == 6)) {
+	
+		int a = 0;
+		a++;
+		which = EXCEPTION_GP;
+	}
 	cpu.exception.error=error;
 	CPU_Interrupt(which,CPU_INT_EXCEPTION | ((which>=8) ? CPU_INT_HAS_ERROR : 0),reg_eip);
 }
 
 Bit8u lastint;
 void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
+
+	if (num == 0xB0) {
+		LOG_MSG("INTERRUPT 0xB0");
+	}
 	lastint=num;
 	FillFlags();
 #if C_DEBUG
@@ -598,8 +611,6 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 			CPU_Exception(EXCEPTION_GP,num*8+2);
 			return;
 		}
-
-
 		switch (gate.Type()) {
 		case DESC_286_INT_GATE:		case DESC_386_INT_GATE:
 		case DESC_286_TRAP_GATE:	case DESC_386_TRAP_GATE:
@@ -707,7 +718,14 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 						E_Exit("V86 interrupt doesn't change to pl0");	// or #GP(cs_sel)
 
 					// commit point
-do_interrupt:
+				do_interrupt:
+					if (num == 3) {
+						LOG_MSG("try interrupt 3 %d %d %x %x", num, gate.Type(), gate.GetSelector(), gate.GetOffset());
+					}
+					if ((num == 1) && !(type & CPU_INT_SOFTWARE)) {
+
+						CPU_WRITE_DRX(6, 0x4000);
+					}
 					if (gate.Type() & 0x8) {	/* 32-bit Gate */
 						CPU_Push32(reg_flags);
 						CPU_Push32(SegValue(cs));
@@ -735,10 +753,11 @@ do_interrupt:
 				SETFLAGBIT(TF,false);
 				SETFLAGBIT(NT,false);
 				SETFLAGBIT(VM,false);
-				LOG(LOG_CPU,LOG_NORMAL)("INT:Gate to %X:%X big %d %s",gate_sel,gate_off,cs_desc.Big(),gate.Type() & 0x8 ? "386" : "286");
+			//	LOG(LOG_CPU,LOG_NORMAL)("INT:Gate to %X:%X big %d %s",gate_sel,gate_off,cs_desc.Big(),gate.Type() & 0x8 ? "386" : "286");
 				return;
 			}
 		case DESC_TASK_GATE:
+			LOG_MSG("try interrupt 3");
 			CPU_CHECK_COND(!gate.saved.seg.p,
 				"INT:Gate segment not present",
 				EXCEPTION_NP,num*8+2+(type&CPU_INT_SOFTWARE)?0:1)
@@ -1551,8 +1570,11 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 			if (!changed) return;
 			cpu.cr0=value;
 			if (value & CR0_PROTECTION) {
+				if (!cpu.pmode) {
+
+					LOG(LOG_CPU, LOG_NORMAL)("Protected mode");
+				}
 				cpu.pmode=true;
-				LOG(LOG_CPU,LOG_NORMAL)("Protected mode");
 				PAGING_Enable((value & CR0_PAGING)>0);
 
 				if (!(CPU_AutoDetermineMode&CPU_AUTODETERMINE_MASK)) break;
@@ -1679,6 +1701,7 @@ bool CPU_READ_DRX(Bitu dr,Bit32u & retvalue) {
 	case 6:
 	case 7:
 		retvalue=cpu.drx[dr];
+		LOG_MSG("CPU_READ_DRX %d %x", dr, retvalue);
 		break;
 	case 4:
 		retvalue=cpu.drx[6];

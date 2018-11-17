@@ -232,7 +232,8 @@
 			bound_min=LoadMw(eaa);
 			bound_max=LoadMw(eaa+2);
 			if ( (((Bit16s)*rmrw) < bound_min) || (((Bit16s)*rmrw) > bound_max) ) {
-				EXCEPTION(5);
+				//EXCEPTION(5);
+				EXCEPTION(EXCEPTION_GP);
 			}
 		}
 		break;
@@ -609,6 +610,9 @@
 	CASE_B(0xa2)												/* MOV Ob,AL */
 		{
 			GetEADirect;
+			if (reg_al == 3) {
+				LOG_MSG("MOV Ob,AL");
+			}
 			SaveMb(eaa,reg_al);
 		}
 		break;
@@ -690,6 +694,7 @@
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
 			GetEAa;
+			//printf("LES %x\n", LoadMw(eaa + 2));
 			if (CPU_SetSegGeneral(es,LoadMw(eaa+2))) RUNEXCEPTION();
 			*rmrw=LoadMw(eaa);
 			break;
@@ -707,7 +712,10 @@
 		{
 			GetRM;
 			if (rm >= 0xc0) {GetEArb;*earb=Fetchb();}
-			else {GetEAa;SaveMb(eaa,Fetchb());}
+			else {
+				GetEAa;
+				if (SaveMb2(eaa, Fetchb())) RUNEXCEPTION();
+			}
 			break;
 		}
 	CASE_W(0xc7)												/* MOV EW,Iw */
@@ -952,6 +960,8 @@
 		LOG(LOG_CPU,LOG_NORMAL)("CPU:LOCK"); /* FIXME: see case D_LOCK in core_full/load.h */
 		break;
 	CASE_B(0xf1)												/* ICEBP */
+		LOG_MSG("ICEBP %x %x", SegValue(cs), reg_ip);
+
 		CPU_SW_Interrupt_NoIOPLCheck(1,GETIP);
 #if CPU_TRAP_CHECK
 		cpu.trap_skip=true;

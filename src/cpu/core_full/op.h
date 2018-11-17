@@ -637,7 +637,8 @@ switch (inst.code.op) {
 			bound_min=LoadMw(inst.rm_eaa);
 			bound_max=LoadMw(inst.rm_eaa+2);
 			if ( (((Bit16s)inst_op1_w) < bound_min) || (((Bit16s)inst_op1_w) > bound_max) ) {
-				EXCEPTION(5);
+				//EXCEPTION(5);
+				EXCEPTION(EXCEPTION_GP);
 			}
 		}
 		break;

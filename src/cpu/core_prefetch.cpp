@@ -39,6 +39,7 @@
 #define LoadMw(off) mem_readw(off)
 #define LoadMd(off) mem_readd(off)
 #define SaveMb(off,val)	mem_writeb(off,val)
+#define SaveMb2(off,val)	mem_writeb2(off,val)
 #define SaveMw(off,val)	mem_writew(off,val)
 #define SaveMd(off,val)	mem_writed(off,val)
 #else 

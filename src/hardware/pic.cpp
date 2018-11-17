@@ -245,9 +245,15 @@ static Bitu read_data(Bitu port,Bitu iolen) {
 
 void PIC_ActivateIRQ(Bitu irq) {
 	if( irq < 8 ) {
+		if (irq > 4) {
+			LOG_MSG("PIC_ActivateIRQ %d", irq);
+		}
 		irqs[irq].active = true;
 		if (!irqs[irq].masked) {
-			PIC_IRQCheck|=(1 << irq);
+			if (irq > 4) {
+				LOG_MSG("PIC_ActivateIRQ 2 %d", irq);
+			}
+			PIC_IRQCheck |= (1 << irq);
 		}
 	} else 	if (irq < 16) {
 		irqs[irq].active = true;
@@ -266,8 +272,12 @@ void PIC_DeActivateIRQ(Bitu irq) {
 	}
 }
 static inline bool PIC_startIRQ(Bitu i) {
+
+	if (i == 5) {
+		LOG_MSG("PIC_startIRQ %d", i);
+	}
 	/* irqs on second pic only if irq 2 isn't masked */
-	if( i > 7 && irqs[2].masked) return false;
+	if (i > 7 && irqs[2].masked) return false;
 	irqs[i].active = false;
 	PIC_IRQCheck&= ~(1 << i);
 	PIC_IRQOnSecondPicActive&= ~(1 << i);
@@ -304,6 +314,9 @@ void PIC_runIRQs(void) {
 	if(!PIC_Special_Mode) {
 		for (j = 0; j < Priority_Active_IRQ; j++) {
 			i = IRQ_priority_order[j];
+			if (i == 5) {
+				LOG_MSG("check 5");
+			}
 			if (!irqs[i].masked && irqs[i].active) {
 				if(GCC_LIKELY(PIC_startIRQ(i))) return;
 			}
@@ -575,7 +588,9 @@ public:
 		irqs[0].masked=false;					/* Enable system timer */
 		irqs[1].masked=false;					/* Enable Keyboard IRQ */
 		irqs[2].masked=false;					/* Enable second pic */
-		irqs[8].masked=false;					/* Enable RTC IRQ */
+		//irqs[5].masked = false;					/* Enable GEOS host callback */
+		PIC_SetIRQMask(5, false);
+		irqs[8].masked = false;					/* Enable RTC IRQ */
 		if (machine==MCH_PCJR) {
 			/* Enable IRQ6 (replacement for the NMI for PCJr) */
 			irqs[6].masked=false;

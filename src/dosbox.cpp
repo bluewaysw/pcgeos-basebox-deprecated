@@ -87,6 +87,10 @@ void DISNEY_Init(Section*);
 void SERIAL_Init(Section*); 
 
 
+#ifdef C_GEOSHOST
+void GeosHost_Init(Section* sec);
+#endif
+
 #if C_IPX
 void IPX_Init(Section*);
 #endif
@@ -673,7 +677,12 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("ipx",Property::Changeable::WhenIdle, false);
 	Pbool->Set_help("Enable ipx over UDP/IP emulation.");
 #endif
-//	secprop->AddInitFunction(&CREDITS_Init);
+
+#ifdef C_GEOSHOST
+	secprop = control->AddSection_prop("geoshost", &GeosHost_Init, true);
+#endif
+
+	//	secprop->AddInitFunction(&CREDITS_Init);
 
 	//TODO ?
 	secline=control->AddSection_line("autoexec",&AUTOEXEC_Init);

@@ -37,6 +37,7 @@
 #define LoadMw(off) mem_readw(off)
 #define LoadMd(off) mem_readd(off)
 #define SaveMb(off,val)	mem_writeb(off,val)
+#define SaveMb2(off,val)	mem_writeb2(off,val)
 #define SaveMw(off,val)	mem_writew(off,val)
 #define SaveMd(off,val)	mem_writed(off,val)
 #else 
@@ -137,8 +138,13 @@ static INLINE Bit32u Fetchd() {
 #define EALookupTable (core.ea_table)
 
 Bits CPU_Core_Normal_Run(void) {
+
+	static int lineCount = 0;
+	static int pageCount = 0;
+	static bool debug = false;
 	while (CPU_Cycles-->0) {
 		LOADIP;
+
 		core.opcode_index=cpu.code.big*0x200;
 		core.prefixes=cpu.code.big;
 		core.ea_table=&EATable[cpu.code.big*256];
@@ -162,7 +168,7 @@ restart_opcode:
 		#include "core_normal/prefix_66_0f.h"
 		default:
 		illegal_opcode:
-#if C_DEBUG	
+#if 1 /*C_DEBUG*/	
 			{
 				Bitu len=(GETIP-reg_eip);
 				LOADIP;
@@ -194,7 +200,12 @@ Bits CPU_Core_Normal_Trap_Run(void) {
 	cpu.trap_skip = false;
 
 	Bits ret=CPU_Core_Normal_Run();
-	if (!cpu.trap_skip) CPU_HW_Interrupt(1);
+
+	if (!cpu.trap_skip) {
+		printf("CPU_HW_Interrupt(1);\n");
+		CPU_WRITE_DRX(6, 0x4000);
+		CPU_HW_Interrupt(1);
+	}
 	CPU_Cycles = oldCycles-1;
 	cpudecoder = &CPU_Core_Normal_Run;
 

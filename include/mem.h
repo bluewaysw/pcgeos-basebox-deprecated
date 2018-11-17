@@ -125,7 +125,8 @@ Bit16u mem_readw(PhysPt pt);
 Bit32u mem_readd(PhysPt pt);
 
 void mem_writeb(PhysPt pt,Bit8u val);
-void mem_writew(PhysPt pt,Bit16u val);
+bool mem_writeb2(PhysPt pt, Bit8u val);
+void mem_writew(PhysPt pt, Bit16u val);
 void mem_writed(PhysPt pt,Bit32u val);
 
 static INLINE void phys_writeb(PhysPt addr,Bit8u val) {

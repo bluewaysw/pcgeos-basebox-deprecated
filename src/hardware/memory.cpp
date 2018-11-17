@@ -24,6 +24,7 @@
 #include "setup.h"
 #include "paging.h"
 #include "regs.h"
+#include "cpu.h"
 
 #include <string.h>
 
@@ -498,10 +499,37 @@ Bit32u mem_readd(PhysPt address) {
 }
 
 void mem_writeb(PhysPt address,Bit8u val) {
+	if (val == 3) {
+		 Bit8u data = mem_readb_inline(address + 1);
+		 if (data == 0x5c) {
+			 Bit8u data2 = mem_readb_inline(address);
+			 if ((data2 == 0x40) || (data2 == 0x50) || (data2 == 0x30)){
+				 LOG_MSG("WRITE 3 %x", data);
+				 //CPU_Exception(EXCEPTION_GP, 0xFFFF);
+			 }
+		 }
+	}
 	mem_writeb_inline(address,val);
 }
 
-void mem_writew(PhysPt address,Bit16u val) {
+bool mem_writeb2(PhysPt address, Bit8u val) {
+	bool retVal = false;
+	if (val == 3) {
+		Bit8u data = mem_readb_inline(address + 1);
+		if (data == 0x5c) {
+			Bit8u data2 = mem_readb_inline(address);
+			if ((data2 == 0x40) || (data2 == 0x50) || (data2 == 0x30) || (data2 == 0x60)){
+				LOG_MSG("WRITE 3 %x", data);
+				//CPU_Exception(EXCEPTION_GP, 0xFFFF);
+				retVal = true;
+			}
+		}
+	}
+	mem_writeb_inline(address, val);
+	return retVal;
+}
+
+void mem_writew(PhysPt address, Bit16u val) {
 	mem_writew_inline(address,val);
 }
 
